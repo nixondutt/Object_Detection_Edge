@@ -74,7 +74,7 @@ def timefunc(func):
         return result
     return timeit_wrapper
 
-def load_model(path, ext_delegate=None,num_threads=None,armadillo=False):
+def load_model(file, ext_delegate=None,num_threads=None,armadillo=False):
     opt = parse_opt()
     if opt.ext_delegate and not armadillo:
         if os.path.isfile('/usr/lib/libvx_delegate.so'):
