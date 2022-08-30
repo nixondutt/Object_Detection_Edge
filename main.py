@@ -4,23 +4,24 @@ import cv2
 import yaml
 from moviepy.editor import *
 from utils.utils import *
-from functools import wraps
 import subprocess as sp
+import numpy as np
 np.random.seed(0)
 
-class Infer(Object):
+class Infer(object):
     def __init__(self):
         self.opt = parse_opt()
         self.names = None
         self.clip = VideoFileClip(self.opt.video)
-        self.interpreter = load_model(opt.weight)
+        self.interpreter = load_model(self.opt.weight)
+        self.interpreter.allocate_tensors()
         self.n_classes = 91
         self.colors = np.random.randint(0, 255, size=(self.n_classes, 3), 
                                         dtype="uint8")
 
     @timefunc
     def read_labels(self):
-        with open(opt.label, errors = 'ignore') as f:
+        with open(self.opt.label, errors = 'ignore') as f:
             self.names = yaml.safe_load(f)['names']
 
     def _set_input_tensor(self, image):
@@ -42,7 +43,7 @@ class Infer(Object):
         """
         self._set_input_tensor(image)
         start_time = time.perf_counter()
-        interpreter.invoke()
+        self.interpreter.invoke()
         end_time = time.perf_counter() - start_time
         print(f'interpreter forward function took {end_time:0.6f}s')
         # Get all output details
@@ -66,7 +67,7 @@ class Infer(Object):
         return results
 
     @timefunc
-    def draw(results,original_image):
+    def draw(self,results,original_image):
         for obj in results:
             # convert the bouding box from relative cordinates to absolute cordinates
             ymin, xmin, ymax, xmax =  obj['bounding_box']
@@ -118,3 +119,8 @@ class Infer(Object):
 
         sys.stdout.close()
         sys.stdout = store_std_out
+
+if __name__=="__main__":
+    infer = Infer()
+    _, HEIGHT, WIDTH, _ = infer.interpreter.get_input_details()[0]['shape']
+    infer.infer_video((HEIGHT, WIDTH))

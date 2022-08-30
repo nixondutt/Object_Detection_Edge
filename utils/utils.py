@@ -9,6 +9,7 @@ import time
 import os 
 import cv2
 import tflite_runtime.interpreter as tflite
+from functools import wraps
 from urllib.request import urlopen, Request
 from pathlib import Path
 import shutil
